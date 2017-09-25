@@ -20,7 +20,7 @@ class Style(ResourceInfo):
 
     def __init__(self, catalog, name, workspace=None, style_format="sld10"):
         super(Style, self).__init__()
-        assert isinstance(name, basestring)
+        assert isinstance(name, str)
         assert style_format in Style.supported_formats
 
         self.catalog = catalog

@@ -11,8 +11,8 @@ __license__ = "MIT"
 import logging
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 from zipfile import ZipFile
 import os
 
@@ -45,18 +45,18 @@ def url(base, seg, query=None):
         Cleans the segment and encodes to UTF-8 if the segment is unicode.
         """
         segment = segment.strip('/')
-        if isinstance(segment, unicode):
+        if isinstance(segment, str):
             segment = segment.encode('utf-8')
         return segment
 
-    seg = (urllib.quote(clean_segment(s)) for s in seg)
+    seg = (urllib.parse.quote(clean_segment(s)) for s in seg)
     if query is None or len(query) == 0:
         query_string = ''
     else:
-        query_string = "?" + urllib.urlencode(query)
+        query_string = "?" + urllib.parse.urlencode(query)
     path = '/'.join(seg) + query_string
     adjusted_base = base.rstrip('/') + '/'
-    return urlparse.urljoin(adjusted_base, path)
+    return urllib.parse.urljoin(adjusted_base, path)
 
 def xml_property(path, converter = lambda x: x.text, default=None):
     def getter(self):
@@ -141,7 +141,7 @@ def write_string_list(name):
 def write_dict(name):
     def write(builder, pairs):
         builder.start(name, dict())
-        for k, v in pairs.iteritems():
+        for k, v in list(pairs.items()):
             if k == 'port':
                 v = str(v)
             builder.start("entry", dict(key=k))
@@ -153,7 +153,7 @@ def write_dict(name):
 def write_metadata(name):
     def write(builder, metadata):
         builder.start(name, dict())
-        for k, v in metadata.iteritems():
+        for k, v in list(metadata.items()):
             builder.start("entry", dict(key=k))
             if k in ['time', 'elevation'] or k.startswith('custom_dimension'):
                 dimension_info(builder, v)
@@ -191,7 +191,7 @@ class ResourceInfo(object):
         if hasattr(self, "advertised"):
             self.dirty['advertised'] = self.advertised
 
-        for k, writer in self.writers.items():
+        for k, writer in list(self.writers.items()):
             if k in self.dirty:
                 writer(builder, self.dirty[k])
 
@@ -214,9 +214,9 @@ def prepare_upload_bundle(name, data):
     archive when it's done."""
     fd, path = mkstemp()
     zip_file = ZipFile(path, 'w')
-    for ext, stream in data.iteritems():
+    for ext, stream in list(data.items()):
         fname = "%s.%s" % (name, ext)
-        if (isinstance(stream, basestring)):
+        if (isinstance(stream, str)):
             zip_file.write(stream, fname)
         else:
             zip_file.writestr(fname, stream.read())
@@ -337,14 +337,14 @@ class DimensionInfo(object):
 
     def resolution_millis(self):
         '''if set, get the value of resolution in milliseconds'''
-        if self.resolution is None or not isinstance(self.resolution, basestring):
+        if self.resolution is None or not isinstance(self.resolution, str):
                 return self.resolution
         val, mult = self.resolution.split(' ')
         return int(float(val) * self._multipier(mult) * 1000)
 
     def resolution_str(self):
         '''if set, get the value of resolution as "<n> <period>s", for example: "8 seconds"'''
-        if self.resolution is None or isinstance(self.resolution, basestring):
+        if self.resolution is None or isinstance(self.resolution, str):
             return self.resolution
         seconds = self.resolution / 1000.
         biggest = self._lookup[0]
@@ -561,7 +561,7 @@ def metadata(node):
 def _decode_list(data):
     rv = []
     for item in data:
-        if isinstance(item, unicode):
+        if isinstance(item, str):
             item = item.encode('utf-8')
         elif isinstance(item, list):
             item = _decode_list(item)
@@ -572,10 +572,10 @@ def _decode_list(data):
 
 def _decode_dict(data):
     rv = {}
-    for key, value in data.iteritems():
-        if isinstance(key, unicode):
+    for key, value in list(data.items()):
+        if isinstance(key, str):
             key = key.encode('utf-8')
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode('utf-8')
         elif isinstance(value, list):
             value = _decode_list(value)

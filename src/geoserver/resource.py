@@ -68,7 +68,7 @@ class _ResourceBase(ResourceInfo):
 
         if not href:
             assert isinstance(store, ResourceInfo)
-            assert isinstance(name, basestring)
+            assert isinstance(name, str)
             assert workspace is not None
         else:
             parts = href.split('/')
