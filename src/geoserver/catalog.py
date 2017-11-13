@@ -25,7 +25,7 @@ import httplib2
 from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 logger = logging.getLogger("gsconfig.catalog")
 
@@ -49,9 +49,9 @@ def _name(named):
          as long as it's a string
        * otherwise, we raise a ValueError
     """
-    if isinstance(named, basestring) or named is None:
+    if isinstance(named, str) or named is None:
         return named
-    elif hasattr(named, 'name') and isinstance(named.name, basestring):
+    elif hasattr(named, 'name') and isinstance(named.name, str):
         return named.name
     else:
         raise ValueError("Can't interpret %s as a name or a configuration object" % named)
@@ -199,7 +199,7 @@ class Catalog(object):
         def parse_or_raise(xml):
             try:
                 return XML(xml)
-            except (ExpatError, SyntaxError), e:
+            except (ExpatError, SyntaxError) as e:
                 msg = "GeoServer gave non-XML response for [GET %s]: %s"
                 msg = msg % (rest_url, xml)
                 raise Exception(msg, e)
@@ -253,7 +253,7 @@ class Catalog(object):
 
         # Make sure workspace is a workspace object and not a string.
         # If the workspace does not exist, continue as if no workspace had been defined.
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
 
         # Create a list with potential workspaces to look into
@@ -272,7 +272,7 @@ class Catalog(object):
             # Get all the store objects from geoserver
             raw_stores = self.get_stores(workspace=ws)
             # And put it in a dictionary where the keys are the name of the store,
-            new_stores = dict(zip([s.name for s in raw_stores], raw_stores))
+            new_stores = dict(list(zip([s.name for s in raw_stores], raw_stores)))
             # If the store is found, put it in a dict that also takes into account the
             # worspace.
             if name in new_stores:
@@ -285,14 +285,14 @@ class Catalog(object):
         if len(found_stores) == 0:
             raise FailedRequestError("No store found named: " + name)
         elif len(found_stores) > 1:
-            raise AmbiguousRequestError("Multiple stores found named '" + name + "': "+ found_stores.keys())
+            raise AmbiguousRequestError("Multiple stores found named '" + name + "': "+ list(found_stores.keys()))
         else:
-            return found_stores.values()[0]
+            return list(found_stores.values())[0]
 
 
     def get_stores(self, workspace=None):
         if workspace is not None:
-            if isinstance(workspace, basestring):
+            if isinstance(workspace, str):
                 workspace = self.get_workspace(workspace)
             ds_list = self.get_xml(workspace.datastore_url)
             cs_list = self.get_xml(workspace.coveragestore_url)
@@ -309,7 +309,7 @@ class Catalog(object):
             return stores
 
     def create_datastore(self, name, workspace=None):
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
         elif workspace is None:
             workspace = self.get_default_workspace()
@@ -320,7 +320,7 @@ class Catalog(object):
         Hm we already named the method that creates a coverage *resource*
         create_coveragestore... time for an API break?
         """
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
         elif workspace is None:
             workspace = self.get_default_workspace()
@@ -351,7 +351,7 @@ class Catalog(object):
         return self.get_resource(name, store=store, workspace=workspace)
 
     def add_data_to_store(self, store, name, data, workspace=None, overwrite = False, charset = None):
-        if isinstance(store, basestring):
+        if isinstance(store, str):
             store = self.get_store(store, workspace=workspace)
         if workspace is not None:
             workspace = _name(workspace)
@@ -456,7 +456,7 @@ class Catalog(object):
             "Content-type": "application/zip",
             "Accept": "application/xml"
         }
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             message = open(data, 'rb')
         else:
             message = data
@@ -510,7 +510,7 @@ class Catalog(object):
                     # read in many sites that application/zip will do the trick. Successfully tested
                     headers['Content-type'] = 'application/zip'
                     ext = "worldimage"
-            elif isinstance(data, basestring):
+            elif isinstance(data, str):
                 message = open(data, 'rb')
             else:
                 message = data
@@ -665,9 +665,9 @@ class Catalog(object):
 
     def get_resource(self, name, store=None, workspace=None):
         if store is not None and workspace is not None:
-            if isinstance(workspace, basestring):
+            if isinstance(workspace, str):
                 workspace = self.get_workspace(workspace)
-            if isinstance(store, basestring):
+            if isinstance(store, str):
                 store = self.get_store(store, workspace)
             if store is not None:
                 return store.get_resources(name)
@@ -707,9 +707,9 @@ class Catalog(object):
         return resource(self, None, None, name, href=url)
 
     def get_resources(self, store=None, workspace=None):
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
-        if isinstance(store, basestring):
+        if isinstance(store, str):
             store = self.get_store(store, workspace)
         if store is not None:
             return store.get_resources()
@@ -732,7 +732,7 @@ class Catalog(object):
             return None
 
     def get_layers(self, resource=None):
-        if isinstance(resource, basestring):
+        if isinstance(resource, str):
             resource = self.get_resource(resource)
         layers_url = url(self.service_url, ["layers.xml"])
         description = self.get_xml(layers_url)

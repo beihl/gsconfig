@@ -57,7 +57,7 @@ class LayerGroup(ResourceInfo):
     def __init__(self, catalog, name, workspace=None):
         super(LayerGroup, self).__init__()
 
-        assert isinstance(name, basestring)
+        assert isinstance(name, str)
 
         self.catalog = catalog
         self.name = name

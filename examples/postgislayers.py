@@ -21,4 +21,4 @@ pg_stores = [s for s in cat.get_stores()
 res = []
 for s in pg_stores:
     res.extend(r.name for r in cat.get_resources(store=s))
-print res
+print(res)

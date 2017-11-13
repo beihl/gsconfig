@@ -4,8 +4,8 @@
 from setuptools import setup, find_packages
 
 try:
-    readme_text = file('README.rst', 'rb').read()
-except IOError,e:
+    readme_text = open('README.rst', 'r').read()
+except IOError as e:
     readme_text = ''
 
 setup(name = "gsconfig",
