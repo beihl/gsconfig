@@ -145,7 +145,7 @@ class Layer(ResourceInfo):
         if self.dom is None:
             self.fetch()
         styles_list = self.dom.findall("styles/style")
-        return filter(None, [ self._resolve_style(s) for s in styles_list ])
+        return [_f for _f in [ self._resolve_style(s) for s in styles_list ] if _f]
 
     def _set_alternate_styles(self, styles):
         self.dirty["alternate_styles"] = styles

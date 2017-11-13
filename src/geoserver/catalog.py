@@ -48,9 +48,9 @@ def _name(named):
          as long as it's a string
        * otherwise, we raise a ValueError
     """
-    if isinstance(named, basestring) or named is None:
+    if isinstance(named, str) or named is None:
         return named
-    elif hasattr(named, 'name') and isinstance(named.name, basestring):
+    elif hasattr(named, 'name') and isinstance(named.name, str):
         return named.name
     else:
         raise ValueError("Can't interpret %s as a name or a configuration object" % named)
@@ -120,9 +120,9 @@ class Catalog(object):
         about_url = self.service_url + "/about/version.html"
         response, content = self.http.request(about_url, "GET")
         if response.status == 200:
-            return content
+            return content.decode('utf-8')
         raise FailedRequestError('Unable to determine version: %s' %
-                                 (content or response.status))
+                                 (content or response.status.decode('utf-8')))
 
     def gsversion(self):
         '''obtain the version or just 2.2.x if < 2.3.x
@@ -252,7 +252,7 @@ class Catalog(object):
 
         # Make sure workspace is a workspace object and not a string.
         # If the workspace does not exist, continue as if no workspace had been defined.
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
 
         # Create a list with potential workspaces to look into
@@ -271,7 +271,7 @@ class Catalog(object):
             # Get all the store objects from geoserver
             raw_stores = self.get_stores(workspace=ws)
             # And put it in a dictionary where the keys are the name of the store,
-            new_stores = dict(zip([s.name for s in raw_stores], raw_stores))
+            new_stores = dict(list(zip([s.name for s in raw_stores], raw_stores)))
             # If the store is found, put it in a dict that also takes into account the
             # worspace.
             if name in new_stores:
@@ -284,14 +284,14 @@ class Catalog(object):
         if len(found_stores) == 0:
             raise FailedRequestError("No store found named: " + name)
         elif len(found_stores) > 1:
-            raise AmbiguousRequestError("Multiple stores found named '" + name + "': "+ found_stores.keys())
+            raise AmbiguousRequestError("Multiple stores found named '" + name + "': "+ list(found_stores.keys()))
         else:
-            return found_stores.values()[0]
+            return list(found_stores.values())[0]
 
 
     def get_stores(self, workspace=None):
         if workspace is not None:
-            if isinstance(workspace, basestring):
+            if isinstance(workspace, str):
                 workspace = self.get_workspace(workspace)
             ds_list = self.get_xml(workspace.datastore_url)
             cs_list = self.get_xml(workspace.coveragestore_url)
@@ -308,7 +308,7 @@ class Catalog(object):
             return stores
 
     def create_datastore(self, name, workspace=None):
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
         elif workspace is None:
             workspace = self.get_default_workspace()
@@ -319,7 +319,7 @@ class Catalog(object):
         Hm we already named the method that creates a coverage *resource*
         create_coveragestore... time for an API break?
         """
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
         elif workspace is None:
             workspace = self.get_default_workspace()
@@ -350,7 +350,7 @@ class Catalog(object):
         return self.get_resource(name, store=store, workspace=workspace)
 
     def add_data_to_store(self, store, name, data, workspace=None, overwrite = False, charset = None):
-        if isinstance(store, basestring):
+        if isinstance(store, str):
             store = self.get_store(store, workspace=workspace)
         if workspace is not None:
             workspace = _name(workspace)
@@ -455,7 +455,7 @@ class Catalog(object):
             "Content-type": "application/zip",
             "Accept": "application/xml"
         }
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             message = open(data, 'rb')
         else:
             message = data
@@ -509,7 +509,7 @@ class Catalog(object):
                     # read in many sites that application/zip will do the trick. Successfully tested
                     headers['Content-type'] = 'application/zip'
                     ext = "worldimage"
-            elif isinstance(data, basestring):
+            elif isinstance(data, str):
                 message = open(data, 'rb')
             else:
                 message = data
@@ -664,9 +664,9 @@ class Catalog(object):
 
     def get_resource(self, name, store=None, workspace=None):
         if store is not None and workspace is not None:
-            if isinstance(workspace, basestring):
+            if isinstance(workspace, str):
                 workspace = self.get_workspace(workspace)
-            if isinstance(store, basestring):
+            if isinstance(store, str):
                 store = self.get_store(store, workspace)
             if store is not None:
                 return store.get_resources(name)
@@ -706,9 +706,9 @@ class Catalog(object):
         return resource(self, None, None, name, href=url)
 
     def get_resources(self, store=None, workspace=None):
-        if isinstance(workspace, basestring):
+        if isinstance(workspace, str):
             workspace = self.get_workspace(workspace)
-        if isinstance(store, basestring):
+        if isinstance(store, str):
             store = self.get_store(store, workspace)
         if store is not None:
             return store.get_resources()
@@ -731,7 +731,7 @@ class Catalog(object):
             return None
 
     def get_layers(self, resource=None):
-        if isinstance(resource, basestring):
+        if isinstance(resource, str):
             resource = self.get_resource(resource)
         layers_url = url(self.service_url, ["layers.xml"])
         description = self.get_xml(layers_url)
@@ -826,7 +826,7 @@ class Catalog(object):
             xml = "<style><name>{0}</name><filename>{0}.sld</filename></style>".format(name)
             style = Style(self, name, workspace, style_format)
             headers, response = self.http.request(style.create_href, "POST", xml, headers)
-            if headers.status < 200 or headers.status > 299: raise UploadError(response)
+            if headers.status < 200 or headers.status > 299: raise UploadError(response.decode('utf-8'))
 
         headers = {
             "Content-type": style.content_type,
@@ -837,7 +837,7 @@ class Catalog(object):
         if raw:
             body_href += "?raw=true"
         headers, response = self.http.request(body_href, "PUT", data, headers)
-        if headers.status < 200 or headers.status > 299: raise UploadError(response)
+        if headers.status < 200 or headers.status > 299: raise UploadError(response.decode('utf-8'))
 
         self._cache.pop(style.href, None)
         self._cache.pop(style.body_href, None)
@@ -851,7 +851,7 @@ class Catalog(object):
         workspace_url = self.service_url + "/namespaces/"
 
         headers, response = self.http.request(workspace_url, "POST", xml, headers)
-        assert 200 <= headers.status < 300, "Tried to create workspace but got " + str(headers.status) + ": " + response
+        assert 200 <= headers.status < 300, "Tried to create workspace but got " + str(headers.status) + ": " + response.decode('utf-8')
         self._cache.pop("%s/workspaces.xml" % self.service_url, None)
         return self.get_workspace(name)
 
@@ -883,7 +883,7 @@ class Catalog(object):
             default_workspace_url = self.service_url + "/workspaces/default.xml"
             msg = "<workspace><name>%s</name></workspace>" % name
             headers, response = self.http.request(default_workspace_url, "PUT", msg, headers)
-            assert 200 <= headers.status < 300, "Error setting default workspace: " + str(headers.status) + ": " + response
+            assert 200 <= headers.status < 300, "Error setting default workspace: " + str(headers.status) + ": " + response.decode('utf-8')
             self._cache.pop(default_workspace_url, None)
             self._cache.pop("%s/workspaces.xml" % self.service_url, None)
         else:

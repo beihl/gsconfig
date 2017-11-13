@@ -36,7 +36,7 @@ class DataStore(ResourceInfo):
         super(DataStore, self).__init__()
 
         assert isinstance(workspace, ws.Workspace)
-        assert isinstance(name, basestring)
+        assert isinstance(name, str)
         self.catalog = catalog
         self.workspace = workspace
         self.name = name
@@ -105,7 +105,7 @@ class CoverageStore(ResourceInfo):
         super(CoverageStore, self).__init__()
 
         assert isinstance(workspace, ws.Workspace)
-        assert isinstance(name, basestring)
+        assert isinstance(name, str)
 
         self.catalog = catalog
         self.workspace = workspace
@@ -165,7 +165,7 @@ class WmsStore(ResourceInfo):
         super(WmsStore, self).__init__()
 
         assert isinstance(workspace, ws.Workspace)
-        assert isinstance(name, basestring)
+        assert isinstance(name, str)
         self.catalog = catalog
         self.workspace = workspace
         self.name = name
