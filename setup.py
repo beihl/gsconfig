@@ -4,8 +4,8 @@
 from setuptools import setup, find_packages
 
 try:
-    readme_text = file('README.rst', 'rb').read()
-except IOError,e:
+    readme_text = open('README.rst', 'r').read()
+except IOError as e:
     readme_text = ''
 
 setup(name = "gsconfig",
@@ -25,12 +25,12 @@ setup(name = "gsconfig",
     packages = find_packages('src'),
     test_suite = "test.catalogtests",
     classifiers = [
-                 'Development Status :: 4 - Beta',
-                 'Intended Audience :: Developers',
-                 'Intended Audience :: Science/Research',
-                 'License :: OSI Approved :: MIT License',
-                 'Operating System :: OS Independent',
-                 'Programming Language :: Python',
-                 'Topic :: Scientific/Engineering :: GIS',
+                 b'Development Status :: 4 - Beta',
+                 b'Intended Audience :: Developers',
+                 b'Intended Audience :: Science/Research',
+                 b'License :: OSI Approved :: MIT License',
+                 b'Operating System :: OS Independent',
+                 b'Programming Language :: Python',
+                 b'Topic :: Scientific/Engineering :: GIS',
                 ]
 )

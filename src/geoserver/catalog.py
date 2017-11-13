@@ -25,8 +25,7 @@ import httplib2
 from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 
-from urlparse import urlparse
-
+from urllib.parse import urlparse
 logger = logging.getLogger("gsconfig.catalog")
 
 class UploadError(Exception):
@@ -199,7 +198,7 @@ class Catalog(object):
         def parse_or_raise(xml):
             try:
                 return XML(xml)
-            except (ExpatError, SyntaxError), e:
+            except (ExpatError, SyntaxError) as e:
                 msg = "GeoServer gave non-XML response for [GET %s]: %s"
                 msg = msg % (rest_url, xml)
                 raise Exception(msg, e)

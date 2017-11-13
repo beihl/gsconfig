@@ -12,7 +12,7 @@ import logging
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
 import urllib
-import urlparse
+from urllib.parse import urlparse
 from zipfile import ZipFile
 import os
 
